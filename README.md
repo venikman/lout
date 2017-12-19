@@ -23,17 +23,15 @@ The routes are of course fake but you can get a grasp of what lout looks like gi
 Lout depends on vision and inert, make sure you register them with hapi.
 
 ```javascript
-var Hapi = require('hapi');
-var server = new Hapi.Server();
-
-server.connection({ port: 80 });
-
-server.register([require('vision'), require('inert'), { register: require('lout') }], function(err) {
+const Hapi = require('hapi');
+const server = new Hapi.Server({
+    port : 80
 });
 
-server.start(function () {
-     console.log('Server running at:', server.info.uri);
-});
+server.register([require('vision'), require('inert'), { register: require('lout') }]);
+
+server.start()
+    .then(console.log('Server running at:', server.info.uri));
 ```
 
 ## Parameters
@@ -56,33 +54,36 @@ If you want a specific route not to appear in lout's documentation, you have to 
 
 Here is an example snippet of a route configuration :
 
-```js
+```javascript
 {
-  method: 'GET',
-  path: '/myroute',
-  config: {
-    handler: [...],
-    [...]
-    plugins: {
-      lout: false
+    method : 'GET',
+    path   : '/myroute',
+    config : {
+        handler : [...],
+        [...]
+        plugins : {
+            lout : false
+        }
     }
-  }
 }
 
 ```
 
 If you want to exclude multiple routes using conditions, you can use `filterRoutes` when registering lout :
-```js
-server.register([require('vision'), require('inert'), {
-  register: require('lout'),
-  options: {
-    filterRoutes: function (route) {
-      return route.method !== '*' && !/^\/private\//.test(route.path);
+```javascript
+server.register([
+    {
+        plugin : require('vision')},
+    {
+        plugin : require('inert')},
+    {
+        plugin : require('lout'),
+            options : {
+                filterRoutes: function (route) {
+                    return route.method !== '*' && !/^\/private\//.test(route.path);
+                }
     }
-  }
-}], function() {
-    server.start(function () {
-        console.log('Server running at:', server.info.uri);
-    });
-});
+}])
+      .then(server.start()
+      .then(console.log('Server running at:', server.info.uri));
 ```
